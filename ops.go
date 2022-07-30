@@ -6,6 +6,8 @@ package vector
 
 // Slice/vector arithmetic
 
+// Plus returns a slice of the same size as a and b containing their elementwise sum.
+// a and b must have the same length
 func Plus[T Number](a, b []T) []T {
 	if len(a) != len(b) {
 		panic("vector length mismatch")
@@ -17,6 +19,8 @@ func Plus[T Number](a, b []T) []T {
 	return r
 }
 
+// Minus returns a slice of the same size as a and b containing their elementwise difference.
+// a and b must have the same length
 func Minus[T Number](a, b []T) []T {
 	if len(a) != len(b) {
 		panic("vector length mismatch")
@@ -28,6 +32,8 @@ func Minus[T Number](a, b []T) []T {
 	return r
 }
 
+// Times returns a slice of the same size as a and b containing their elementwise product.
+// a and b must have the same length
 func Times[T Number](a, b []T) []T {
 	if len(a) != len(b) {
 		panic("vector length mismatch")
@@ -39,6 +45,8 @@ func Times[T Number](a, b []T) []T {
 	return r
 }
 
+// Divide returns a slice of the same size as a and b containing their elementwise quotient.
+// a and b must have the same length
 func Divide[T Number](a, b []T) []T {
 	if len(a) != len(b) {
 		panic("vector length mismatch")
@@ -52,6 +60,8 @@ func Divide[T Number](a, b []T) []T {
 
 // boolean ops
 
+// And returns a slice of the same size as a and b containing their elementwise boolean AND.
+// a and b must have the same length
 func And(a, b []bool) []bool {
 	if len(a) != len(b) {
 		panic("vector length mismatch")
@@ -63,6 +73,8 @@ func And(a, b []bool) []bool {
 	return r
 }
 
+// Or returns a slice of the same size as a and b containing their elementwise boolean OR.
+// a and b must have the same length
 func Or(a, b []bool) []bool {
 	if len(a) != len(b) {
 		panic("vector length mismatch")
@@ -74,6 +86,8 @@ func Or(a, b []bool) []bool {
 	return r
 }
 
+// Xor returns a slice of the same size as a and b containing their elementwise boolean XOR.
+// a and b must have the same length
 func Xor(a, b []bool) []bool {
 	if len(a) != len(b) {
 		panic("vector length mismatch")
@@ -85,6 +99,8 @@ func Xor(a, b []bool) []bool {
 	return r
 }
 
+// And returns a slice of the same size as a a's elementwise boolean NOT.
+// a and b must have the same length
 func Not(a []bool) []bool {
 	r := make([]bool, len(a))
 	for i := range a {
@@ -93,7 +109,7 @@ func Not(a []bool) []bool {
 	return r
 }
 
-// scalar fill
+// Fill returns a slice of length n with elements initialized to scalar b
 func Fill[T Number](n int, b T) []T {
 	r := make([]T, n)
 	for i := range r {
@@ -102,7 +118,8 @@ func Fill[T Number](n int, b T) []T {
 	return r
 }
 
-// mask fill
+// Select returns a slice with the same length as mask with elements initialized to scalars ifTrue and ifFalse
+// corresponding to the values in mask.
 func Select[T Number](mask []bool, ifTrue, ifFalse T) []T {
 	r := make([]T, len(mask))
 	for i, b := range mask {
@@ -115,7 +132,10 @@ func Select[T Number](mask []bool, ifTrue, ifFalse T) []T {
 	return r
 }
 
-// mask merge
+// Merge returns a slice with the same length as mask with elements initialized to
+// elements from corresponding element of ifTrue and ifFalse, depending on the corresponding
+// value in mask.
+// mask, ifTrue, and ifFalse must all have the same length.
 func Merge[T Number](mask []bool, ifTrue, ifFalse []T) []T {
 	if len(ifTrue) != len(ifFalse) || len(ifTrue) != len(mask) {
 		panic("vector length mismatch")
@@ -337,7 +357,9 @@ func ClampS2S[S, T Int](a []S) []T {
 	return r
 }
 
-func Truncate[S, T Int](a []S) []T {
+// Convert converts a slice of S into a slice of T,
+// using the Go-defined conversion from type S to T.
+func Convert[S, T Int](a []S) []T {
 	r := make([]T, len(a))
 	for i, x := range a {
 		r[i] = T(x)
@@ -345,6 +367,8 @@ func Truncate[S, T Int](a []S) []T {
 	return r
 }
 
+// UnpackLE unpacks the contents of a slice of S into a slice
+// of T, bitwise, using little-endian ordering.  S must not be smaller than T.
 func UnpackLE[S, T Int](a []S) []T {
 	sa, sb := bits[S](), bits[T]()
 	if sa < sb {
