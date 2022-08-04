@@ -5,10 +5,10 @@ instead introduce functions over slices that can be treated specially, either by
 perhaps by a preprocessor.  There are several paths to good performance, but my favored approach would
 be for the compiler to recognize "expression trees" over these functions, and
 
-- Declare that the order of evaluation across the slices is not guaranteed, and that aliasing inputs and outputs is a potential source of nonportable surprises.  (This implies perhaps a checking mode that would diagnose this issue).
+- Declare that the order of evaluation across the slices is not guaranteed, and that aliasing inputs and outputs is a potential source of nonportable surprises.  (This implies perhaps a checking mode that would diagnose this issue).  The current proposal avoids this by "always returning a new slice", except for the possible case of a `copyInto` or `assign` function.
 - Hoist all the checks outside the computation (this may or may not be possible without special treatment for these checks).
   It might make sense to rewrite the reference implementation into a checked set of functions and interior intrinsics, and
-  a combination of inlining, common expression elimination and value propagation might be adequate.
+  a combination of inlining, common expression elimination and value propagation might be adequate.  Or, given that these are intrinsics, use knowledge about intrinsics in the analysis (so, special analysis, but not special semantics).
 - Recognize all the slices that exist only as temporaries, as temporaries.
 - Vectorize and chunk across the expression tree.
 
@@ -52,6 +52,4 @@ v86 (47) = StaticLECall <[]go.shape.int8_0,mem> {AuxCall{github.com/dr2chase/vec
 v87 (47) = SelectN <mem> [1] v86
 v88 (47) = SelectN <[]go.shape.int8_0> [0] v86 (z[[]int8])
 ```
-If the bounds checking for inputs and intermediates is given special treatment, this could fairly easily be recognized as a pair of vector expressions and pattern-matched into a vector compilation mode.
-
-
+Using knowledge about the intrinsic semantics, the bounds checks for `x` and `ones` can trivially be hoisted before the calls to `Plus` and `Minus`, those results have known size equal to the sizes of their inputs and thus need no further checking, and all the checks have been done before the calls that compute `z`, so without changes to Go semantics, the entire graph of calls and results can be done as unbroken vector operations (i.e., SIMD, or software pipelined, etc).

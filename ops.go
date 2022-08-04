@@ -367,12 +367,12 @@ func Convert[S, T Int](a []S) []T {
 	return r
 }
 
-// UnpackLE unpacks the contents of a slice of S into a slice
-// of T, bitwise, using little-endian ordering.  S must not be smaller than T.
+// UnpackLE unpacks the contents of a slice of S into a slice of T,
+// bitwise, using little-endian ordering.  S must not be smaller than T.
 func UnpackLE[S, T Int](a []S) []T {
 	sa, sb := bits[S](), bits[T]()
 	if sa < sb {
-		panic("Sizeof(sa) < sizeof(sb) [unpack into smaller type]")
+		panic("Sizeof(sa) < sizeof(sb) [cannot unpack into a larger type]")
 	}
 	bPerA := int(sa / sb)
 	b := make([]T, len(a)*bPerA)
@@ -381,5 +381,34 @@ func UnpackLE[S, T Int](a []S) []T {
 			b[bPerA*i+k] = T(x >> (k * int(sb)))
 		}
 	}
+	return b
+}
+
+// PackLE packs the contents of a slice of S into a slice of T,
+// bitwise, using little-endian ordering.  S must not be larger than T.
+func PackLE[S, T Int](a []S) []T {
+	sa, sb := bits[S](), bits[T]()
+	mask := unsignedMax[S, uint64]()
+	if sa > sb {
+		panic("Sizeof(sa) > sizeof(sb) [cannot pack into a smaller type]")
+	}
+	aPerB := int(sb / sa)
+	b := make([]T, (len(a)+aPerB-1)/aPerB)
+	if len(a) == 0 {
+		return b
+	}
+	var i int
+	for i = 0; i < len(b)-1; i++ {
+		var x T
+		for k := 0; k < aPerB; k++ {
+			x += T(mask & uint64(a[k+i*aPerB]) << (k * int(sa)))
+		}
+		b[i] = x
+	}
+	var x T
+	for k := 0; k < len(a)-i*aPerB; k++ {
+		x += T(mask & uint64(a[k+i*aPerB]) << (k * int(sa)))
+	}
+	b[i] = x
 	return b
 }

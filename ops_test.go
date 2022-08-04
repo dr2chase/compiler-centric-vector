@@ -87,3 +87,29 @@ func TestUnpackILE(t *testing.T) {
 	expectSlice(t, wanti8, goti8)
 	expectSlice(t, wanti16, goti16)
 }
+
+func TestPackULE(t *testing.T) {
+	wantu32s := []uint32{0x01, 0x8202, 0x038303, 0x84048404}
+	u8s := []uint8{1, 0, 0, 0, 2, 0x82, 0, 0, 3, 0x83, 3, 0, 4, 0x84, 4, 0x84}
+	gotu32s := PackLE[uint8, uint32](u8s)
+	expectSlice(t, wantu32s, gotu32s)
+	l := len(wantu32s)
+	for i := 1; i < 3; i++ {
+		gotu32s := PackLE[uint8, uint32](u8s[:len(u8s)-i])
+		wantu32s[l-1] = wantu32s[l-1] & (0xFFFFFFFF >> (8 * i))
+		expectSlice(t, wantu32s, gotu32s)
+	}
+}
+
+func TestPackILE(t *testing.T) {
+	wanti32s := []int32{0x01, 0x8202, 0x038303, -0x80000000 + 0x4048404}
+	i8s := []int8{1, 0, 0, 0, 2, -126, 0, 0, 3, -125, 3, 0, 4, -124, 4, -124}
+	goti32s := PackLE[int8, int32](i8s)
+	expectSlice(t, wanti32s, goti32s)
+	l := len(wanti32s)
+	for i := 1; i < 3; i++ {
+		goti32s := PackLE[int8, int32](i8s[:len(i8s)-i])
+		wanti32s[l-1] = wanti32s[l-1] & int32(uint32(0xFFFFFFFF)>>(8*i))
+		expectSlice(t, wanti32s, goti32s)
+	}
+}
